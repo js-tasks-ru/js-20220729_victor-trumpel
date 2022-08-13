@@ -1,5 +1,5 @@
 export default class ColumnChart {
-  chartHeight = 50
+  #chartHeight = 50
   #memoizedElements = {}
   #templateHTML = null
 
@@ -9,6 +9,10 @@ export default class ColumnChart {
 
   get element() {
     return this.#templateHTML
+  }
+
+  get chartHeight() {
+    return this.#chartHeight
   }
 
   memoizeTemplate() {
