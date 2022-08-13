@@ -11,6 +11,13 @@
       <div id="orders" class="dashboard__chart_orders"></div>
       <div id="sales" class="dashboard__chart_sales"></div>
       <div id="customers" class="dashboard__chart_customers"></div>
+
+      <button id="updateButton">
+        update chart
+      </button>
+      <button id="deleteButton">
+        remove chart
+      </button>
     </div>
 
     <script type="module">
@@ -43,6 +50,14 @@
       orders.append(ordersChart.element);
       sales.append(salesChart.element);
       customers.append(customersChart.element);
+
+      updateButton.onclick = () => {
+        salesChart.update(Array.from({ length: 5 }, () => Math.floor(Math.random() * 100)))
+      }
+      deleteButton.onclick = () => {
+        salesChart.remove()
+      }
+
     </script>
   </body>
 </html>
