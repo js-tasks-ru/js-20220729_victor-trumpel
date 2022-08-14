@@ -9,10 +9,11 @@ export default class NotificationMessage {
     if (NotificationMessage.instance) {
       NotificationMessage.instance.destroy()
     }
-    this.#duration = props?.duration ? props?.duration : 0
+    const { duration, message, type } = props || {}
+    this.#duration = duration ? duration : 0
 
     NotificationMessage.instance = this
-    this.render({ message, ...props})
+    this.render({ message, type })
   }
 
   get element() {
@@ -41,10 +42,8 @@ export default class NotificationMessage {
     this.#templateHTML = null
   }  
 
-  render(props) {
-    const renderProps = { message: '', type: '', ...props }
-
-    this.#templateHTML = toHTML(this.buildTemplate(renderProps))
+  render({ message = '', message = '' } = {}) {
+    this.#templateHTML = toHTML(this.buildTemplate({ message, type }))
   }
 
   buildTemplate({ message, type }) {
