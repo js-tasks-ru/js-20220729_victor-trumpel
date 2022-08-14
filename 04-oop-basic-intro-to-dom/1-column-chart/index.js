@@ -64,7 +64,7 @@ export default class ColumnChart {
   buildLinkTemplate(link) {
     return link
       ? `<a class="column-chart__link" href="${link}">View all</a>`
-      : "";
+      : ""
   }
 
   buildColumnTemplate(columnsData = []) {

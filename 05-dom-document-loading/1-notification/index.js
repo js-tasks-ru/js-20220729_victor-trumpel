@@ -9,8 +9,8 @@ export default class NotificationMessage {
     if (NotificationMessage.instance) {
       NotificationMessage.instance.destroy()
     }
-    const { duration, message, type } = props || {}
-    this.#duration = duration ? duration : 0
+    const { duration, type } = props || {}
+    this.#duration = duration || 0
 
     NotificationMessage.instance = this
     this.render({ message, type })
@@ -24,10 +24,8 @@ export default class NotificationMessage {
     return this.#duration
   }
 
-  show(targetElement = null) {
-    targetElement 
-      ? targetElement.appendChild(this.#templateHTML)
-      : document.body.appendChild(this.#templateHTML)
+  show(targetElement = document.body) {
+    targetElement.append(this.#templateHTML)
 
     this.#timerId = setTimeout(this.remove.bind(this), this.#duration)
   }
@@ -42,7 +40,7 @@ export default class NotificationMessage {
     this.#templateHTML = null
   }  
 
-  render({ message = '', message = '' } = {}) {
+  render({ message = '', type = '' } = {}) {
     this.#templateHTML = toHTML(this.buildTemplate({ message, type }))
   }
 
