@@ -6,6 +6,7 @@
 </head>
 
 <button id="btn1">Show simple message!</button>
+<button id="btn2">Show error message!</button>
 
 <script type="module">
   import NotificationMessage from './index.js';
@@ -14,6 +15,15 @@
     const notification = new NotificationMessage('Hello World', {
       duration: 2000,
       type: 'success'
+    });
+
+    notification.show();
+  });
+
+  btn2.addEventListener('click', () => {
+    const notification = new NotificationMessage('Hello World', {
+      duration: 2000,
+      type: 'error'
     });
 
     notification.show();
