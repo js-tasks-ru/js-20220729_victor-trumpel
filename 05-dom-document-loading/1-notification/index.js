@@ -1,7 +1,7 @@
 export default class NotificationMessage {
   static instance = null
   
-  #templateHTML = null
+  #elementDOM = null
   #timerId = null
   #duration = 0
   
@@ -17,7 +17,7 @@ export default class NotificationMessage {
   }
 
   get element() {
-    return this.#templateHTML
+    return this.#elementDOM
   }
 
   get duration() {
@@ -25,23 +25,23 @@ export default class NotificationMessage {
   }
 
   show(targetElement = document.body) {
-    targetElement.append(this.#templateHTML)
+    targetElement.append(this.#elementDOM)
 
     this.#timerId = setTimeout(this.remove.bind(this), this.#duration)
   }
 
   remove() {
-    this.#templateHTML?.remove()
+    this.#elementDOM?.remove()
     clearTimeout(this.#timerId)
   }
 
   destroy() {
     this.remove()
-    this.#templateHTML = null
+    this.#elementDOM = null
   }  
 
   render({ message = '', type = '' } = {}) {
-    this.#templateHTML = toHTML(this.buildTemplate({ message, type }))
+    this.#elementDOM = createDomElement(this.buildTemplate({ message, type }))
   }
 
   buildTemplate({ message, type }) {
@@ -59,7 +59,7 @@ export default class NotificationMessage {
   }
 }
 
-export const toHTML = (strHTML = "") => {
+export const createDomElement = (strHTML = "") => {
   const fragment = document.createElement("fragment")
   fragment.innerHTML = strHTML
   return fragment.firstElementChild
