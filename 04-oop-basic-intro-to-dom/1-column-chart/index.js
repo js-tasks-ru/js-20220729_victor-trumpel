@@ -1,14 +1,14 @@
 export default class ColumnChart {
   #chartHeight = 50
   #memoizedElements = {}
-  #templateHTML = null
+  #elementDOM = null
 
   constructor(props) {  
     this.render(props)
   }
 
   get element() {
-    return this.#templateHTML
+    return this.#elementDOM
   }
 
   get chartHeight() {
@@ -16,7 +16,7 @@ export default class ColumnChart {
   }
 
   memoizeTemplate() {
-    const memoElements = this.#templateHTML?.querySelectorAll('[data-memo]')
+    const memoElements = this.#elementDOM?.querySelectorAll('[data-memo]')
     for (const element of memoElements) {
       const key = element.dataset.memo
       this.#memoizedElements[key] = element
@@ -33,7 +33,7 @@ export default class ColumnChart {
       ...renderProps
     }
 
-    this.#templateHTML = toHTML(this.buildTemplate(props))
+    this.#elementDOM = createDomElement(this.buildTemplate(props))
     this.memoizeTemplate()
   }
 
@@ -79,12 +79,12 @@ export default class ColumnChart {
   }
 
   remove() {
-    this.#templateHTML?.remove();
+    this.#elementDOM?.remove();
   }
 
   destroy() {
     this.remove()
-    this.#templateHTML = null
+    this.#elementDOM = null
   }
 
   update(data) {
@@ -93,7 +93,7 @@ export default class ColumnChart {
   }
 }
 
-export const toHTML = (strHTML = "") => {
+export const createDomElement = (strHTML = "") => {
   const fragment = document.createElement("fragment")
   fragment.innerHTML = strHTML
   return fragment.firstElementChild
