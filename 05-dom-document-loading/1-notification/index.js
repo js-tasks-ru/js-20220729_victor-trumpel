@@ -1,19 +1,19 @@
 export default class NotificationMessage {
-  static instance = null
+  static #instance = null
   
   #elementDOM = null
   #timerId = null
   #duration = 0
   
   constructor(message, props) {
-    if (NotificationMessage.instance) {
-      NotificationMessage.instance.destroy()
+    if (NotificationMessage.#instance) {
+      NotificationMessage.#instance.destroy()
     }
     const { duration, type } = props || {}
     this.#duration = duration || 0
 
-    NotificationMessage.instance = this
-    this.render({ message, type })
+    NotificationMessage.#instance = this
+    this.#render({ message, type })
   }
 
   get element() {
@@ -40,11 +40,11 @@ export default class NotificationMessage {
     this.#elementDOM = null
   }  
 
-  render({ message = '', type = '' } = {}) {
-    this.#elementDOM = createDomElement(this.buildTemplate({ message, type }))
+  #render({ message = '', type = '' } = {}) {
+    this.#elementDOM = createDomElement(this.#buildTemplate({ message, type }))
   }
 
-  buildTemplate({ message, type }) {
+  #buildTemplate({ message, type }) {
     return String.raw`
       <div class="notification ${type} fadeOut" style="--value:${this.#duration / 1000}s">
         <div class="timer"></div>
