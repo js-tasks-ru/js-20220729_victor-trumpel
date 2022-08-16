@@ -13,6 +13,8 @@
       <div id="customers" class="dashboard__chart_customers"></div>
     </div>
 
+    <button id="update">update</button>
+
     <script type="module">
       import ColumnChart from './index.js';
 
@@ -43,6 +45,11 @@
       orders.append(ordersChart.element);
       sales.append(salesChart.element);
       customers.append(customersChart.element);
+      
+      update.onclick = () => {
+        console.log('click')
+        salesChart.update(Array.from({ length: 5 }, () => Math.random() * 100 ))
+      }
     </script>
   </body>
 </html>
