@@ -114,7 +114,7 @@ export default class SortableTable {
         data-order="${
           this.#sorted.fieldValue === id 
             ? this.#sorted.orderValue 
-            : ''
+            : 'asc'
         }"
       >
         <span>${title}</span>
