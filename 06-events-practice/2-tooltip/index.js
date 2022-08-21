@@ -1,6 +1,7 @@
 class Tooltip {
   static #instance = null
   #elementDOM = null
+  #toolTipContainer = null
 
   constructor() {
     if (Tooltip.#instance)
@@ -13,19 +14,25 @@ class Tooltip {
     return this.#elementDOM
   }
 
-  handleMove(event) {
-    if (!event.target.dataset.tooltip) {
-      this.#elementDOM.remove()
-      return
-    }
-    const text = event.target.dataset.tooltip
-    this.render(text, event.clientX, event.clientY)
+  handleTooltipMove = (event) => {
+    const offset = 10
+    this.#elementDOM.style.left = event.clientX + offset + 'px'
+    this.#elementDOM.style.top = event.clientY + offset + 'px'
   }
 
-  render(text = '', x = 0, y = 0) {
-    const offset = 10
-    this.#elementDOM.style.left = x + offset + 'px'
-    this.#elementDOM.style.top = y + offset + 'px'
+  handleDocumentMove = (event) => {
+    const element = event.target.closest('[data-tooltip]')
+    if (!element) {
+      this.#elementDOM.remove()
+      this.#toolTipContainer = null
+      return
+    }
+    this.#toolTipContainer = element
+    this.#toolTipContainer.addEventListener('mousemove', this.handleTooltipMove)
+    this.render(element.dataset.tooltip)
+  }
+
+  render(text = '') {
     this.#elementDOM.innerHTML = text
     document.body.append(this.#elementDOM)
   }
@@ -33,7 +40,7 @@ class Tooltip {
   destroy() {
     this.#elementDOM?.remove()
     this.#elementDOM = null
-    document.removeEventListener('mousemove', this.handleMove)
+    document.removeEventListener('mousemove', this.handleDocumentMove)
   }
 
   getTemplate(text = '') {
@@ -41,13 +48,13 @@ class Tooltip {
   }
 
   initialize () {
-    document.addEventListener('mousemove', this.handleMove.bind(this))
+    document.addEventListener('pointerover', this.handleDocumentMove)
     this.#elementDOM = createDomElement(this.getTemplate())
   }
 }
 
 export const createDomElement = (strHTML = "") => {
-  const fragment = document.createElement("fragment")
+  const fragment = document.createElement("div")
   fragment.innerHTML = strHTML
   return fragment.firstElementChild
 }
