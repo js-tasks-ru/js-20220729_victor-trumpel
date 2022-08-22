@@ -14,8 +14,10 @@ export default class TableTemplate {
     `
   }
 
-  buildTemplateBody() {
-    return this.data.map((product) => this.buildTemplateRow(product)).join('')
+  buildTemplateBody(customData) {
+    const buildData = customData || this.data
+    console.log('buildData: ', buildData)
+    return buildData.map((product) => this.buildTemplateRow(product)).join('')
   }
 
   buildTemplateHeader() {

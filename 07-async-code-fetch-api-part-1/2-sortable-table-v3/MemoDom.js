@@ -1,4 +1,4 @@
-class MemoDOM {
+export default class MemoDOM {
   #cache = {}
 
   get cache() {
