@@ -3,24 +3,13 @@ class Tooltip {
   #elementDOM = null
   #toolTipContainer = null
 
-  constructor() {
-    if (Tooltip.#instance)
-      return Tooltip.#instance
-    
-    Tooltip.#instance = this
-  }
-
-  get element() {
-    return this.#elementDOM
-  }
-
   handleTooltipMove = (event) => {
     const offset = 10
     this.#elementDOM.style.left = event.clientX + offset + 'px'
     this.#elementDOM.style.top = event.clientY + offset + 'px'
   }
 
-  handleDocumentMove = (event) => {
+  onPointerOver = (event) => {
     const element = event.target.closest('[data-tooltip]')
     if (!element) {
       this.#elementDOM.remove()
@@ -32,6 +21,17 @@ class Tooltip {
     this.render(element.dataset.tooltip)
   }
 
+  constructor() {
+    if (Tooltip.#instance)
+      return Tooltip.#instance
+    
+    Tooltip.#instance = this
+  }
+
+  get element() {
+    return this.#elementDOM
+  }
+
   render(text = '') {
     this.#elementDOM.innerHTML = text
     document.body.append(this.#elementDOM)
@@ -40,7 +40,8 @@ class Tooltip {
   destroy() {
     this.#elementDOM?.remove()
     this.#elementDOM = null
-    document.removeEventListener('mousemove', this.handleDocumentMove)
+    this.#toolTipContainer = null
+    document.removeEventListener('mousemove', this.onPointerOver)
   }
 
   getTemplate(text = '') {
@@ -48,7 +49,7 @@ class Tooltip {
   }
 
   initialize () {
-    document.addEventListener('pointerover', this.handleDocumentMove)
+    document.addEventListener('pointerover', this.onPointerOver)
     this.#elementDOM = createDomElement(this.getTemplate())
   }
 }
