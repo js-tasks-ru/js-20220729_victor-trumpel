@@ -5,6 +5,10 @@ export default class MemoDOM {
     return this.#cache
   }
 
+  clear() {
+    this.#cache = {}
+  }
+
   memoizeDocument(document) {
     if (!document) return
     const elementNeedCache = document.querySelectorAll('[data-memo]')

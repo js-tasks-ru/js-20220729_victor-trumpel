@@ -34,6 +34,7 @@ export default class ColumnChart {
 
   destroy() {
     this.remove()
+    this.#memo.clear()
     this.#elementDOM = null
   }
 
