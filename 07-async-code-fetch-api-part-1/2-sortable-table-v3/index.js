@@ -15,6 +15,7 @@ export default class SortableTable {
   headerConfig = []
   sorted = {}
   isSortLocally = false
+  lazyLoadItemsCount = 30
 
   onWindowScroll = async () => {
     const { bottom } = this.#elementDOM.getBoundingClientRect()
@@ -59,7 +60,7 @@ export default class SortableTable {
       isSortLocally = false 
     } = {}
   ) {
-    this.#apiUrl = `${BACKEND_URL}/${url}`
+    this.#apiUrl = new URL(`${BACKEND_URL}/${url}`)
 
     this.data = []
     this.sorted = { fieldValue: sorted.id, orderValue: sorted.order }
@@ -95,7 +96,6 @@ export default class SortableTable {
     this.data = null
 
     this.#memo.clear()
-    document.removeEventListener('scroll', this.onSortClick)
     window.removeEventListener('scroll', this.onWindowScroll)
   }
 
@@ -106,7 +106,14 @@ export default class SortableTable {
 
   async loadData() {
     const { fieldValue, orderValue } = this.sorted
-    const request = `${this.#apiUrl}?_sort=${fieldValue}&_order=${orderValue}&_start=0&_end=30`
+
+    const request = this.makeRequest({ 
+      '_sort': fieldValue, 
+      '_order': orderValue, 
+      '_start': 0, 
+      '_end': 30 
+    })
+
     const data = await fetchJson(request)
     this.data = data
     this.updateTableBody()
@@ -114,12 +121,18 @@ export default class SortableTable {
 
   async loadMoreData() {
     this.isLoading = true
-    const end = this.data.length + 30
+    const end = this.data.length + this.lazyLoadItemsCount
     const start = this.data.length
 
     const { fieldValue, orderValue } = this.sorted
-    const request = 
-      `${this.#apiUrl}?_sort=${fieldValue}&_order=${orderValue}&_start=${start}&_end=${end}`
+
+    const request = this.makeRequest({ 
+      '_sort': fieldValue, 
+      '_order': orderValue, 
+      '_start': start, 
+      '_end': end 
+    })
+
     const data = await fetchJson(request)
     this.data.push(...data)
 
@@ -134,6 +147,14 @@ export default class SortableTable {
 
   updateTableBody() {
     this.#memo.cache.body.innerHTML = this.buildTemplateBody()
+  }
+
+  makeRequest(query = {}) {
+    const newRequest = new URL(this.#apiUrl)
+    Object.entries(query).forEach(([key, value]) => 
+      newRequest.searchParams.set(key, value)
+    )
+    return newRequest
   }
 
   localSortData() {
