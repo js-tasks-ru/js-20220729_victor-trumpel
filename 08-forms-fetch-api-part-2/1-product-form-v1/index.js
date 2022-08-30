@@ -1,10 +1,9 @@
-import escapeHtml from './utils/escape-html.js';
+import { SelectInput } from './SelectInput.js';
+import { ImageInput } from './ImageInput.js';
 import fetchJson from './utils/fetch-json.js';
-import { categoryOptions } from './utils/categoryOptions.js'
 import createDomElement from './utils/createDomElement.js'
 import MemoDOM from './MemoDom.js'
 
-const IMGUR_CLIENT_ID = '28aaa2e823b03b1';
 const BACKEND_URL = 'https://course-js.javascript.ru/api/rest/';
 
 export default class ProductForm {
@@ -13,16 +12,11 @@ export default class ProductForm {
   #baseUrl = new URL(`${BACKEND_URL}`)
   #memo = new MemoDOM()
 
+  #ImageInput = new ImageInput()
+
   onSubmitForm = (event) => {
     event.preventDefault()
-    const formPayload = {}
-    
-    Object.entries(this.#memo.cache).forEach(([key, inputDOM]) => {
-      if (!key.startsWith('form-')) return
-      formPayload[key.split('form-')[1]] = inputDOM.value
-    })
-
-    // куда-то отправлять 
+    this.save()
   }
 
   constructor (productId) {
@@ -31,6 +25,22 @@ export default class ProductForm {
 
   get element() {
     return this.#elementDOM
+  }
+
+  async save() {
+    const product = this.getFormData()
+  
+    try {
+      await fetchJson(`${this.#baseUrl}products`, {
+        method: this.productId ? 'PATCH' : 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(product)
+      })
+    } catch (error) {
+      console.error('что-то пошло не так', error);
+    }
   }
 
   async loadOptions() {
@@ -42,11 +52,73 @@ export default class ProductForm {
     this.#categories = await fetchJson(categoriesUrl)
   }
 
-  async render () {
+  getFormData() {
+    const formPayload = {}
+    
+    const formatToNumber = ['form-status']
+
+    Object.entries(this.#memo.cache).forEach(([key, inputDOM]) => {
+      if (!key.startsWith('form-')) return
+
+      const value = inputDOM.type === 'number' || formatToNumber.includes(key)
+        ? parseInt(inputDOM.value)
+        : inputDOM.value
+        
+      formPayload[key.split('form-')[1]] = value
+    })
+
+    formPayload.images = this.#ImageInput.images
+
+    return formPayload
+  }
+
+  async render() {
     await this.loadOptions()
+
     this.#elementDOM = createDomElement(this.buildTemplate()) 
+
+    const StatusSelect = new SelectInput({
+      name: 'status',
+      options: [
+        { id: '1', title: 'Активен'},
+        { id: '0', title: 'Неактивен'}
+      ]
+    })
+
+    const CategorySelect = new SelectInput({
+      name: 'subcategory',
+      options: this.#categories
+    })
+
+    this.renderTree(this.#elementDOM, { 
+      StatusSelect, 
+      CategorySelect, 
+      ImageInput: this.#ImageInput 
+    })
+
     this.#memo.memoizeDocument(this.#elementDOM)
     this.initEventListeners()
+  }
+
+  remove() {
+    this.#elementDOM.remove()
+  }
+
+  destroy() {
+    this.remove()
+    this.#elementDOM = null
+    this.#memo.clear()
+  }
+
+  renderTree(elementDOM, componentLibrary) {
+    const renderPlace = elementDOM.querySelectorAll('[data-mount]')
+
+    renderPlace.forEach(elem => {
+      const component = elem.dataset.mount
+      const componentInstance = componentLibrary[component]
+      componentInstance.render()
+      elem.replaceWith(componentInstance.element)
+    })
   }
 
   initEventListeners() {
@@ -83,33 +155,16 @@ export default class ProductForm {
           ></textarea>
         </div>
         <div class="form-group form-group__wide" data-element="sortable-list-container">
-          <label class="form-label">Фото</label>
-          <div data-element="imageListContainer">
-            <ul class="sortable-list">
-              <li class="products-edit__imagelist-item sortable-list__item" style="">
-            <input 
-              type="hidden" 
-              name="url" 
-              value="https://i.imgur.com/MWorX2R.jpg"
-            >
-            <input 
-              type="hidden" 
-              name="source" 
-              value="75462242_3746019958756848_838491213769211904_n.jpg"
-            >
-            <span>
-          <img src="icon-grab.svg" data-grab-handle="" alt="grab">
-          <img class="sortable-table__cell-img" alt="Image" src="https://i.imgur.com/MWorX2R.jpg">
-          <span>75462242_3746019958756848_838491213769211904_n.jpg</span>
-        </span>
-            <button type="button">
-              <img src="icon-trash.svg" data-delete-handle="" alt="delete">
-            </button></li></ul></div>
-          <button type="button" name="uploadImage" class="button-primary-outline"><span>Загрузить</span></button>
+
+          <span data-mount="ImageInput"></span>
+
         </div>
+
         <div class="form-group form-group__half_left">
           <label class="form-label">Категория</label>
-          ${new SelectInput('subcategory', this.#categories).template}
+
+          <span data-mount="CategorySelect"></span> 
+
         </div>
         <div class="form-group form-group__half_left form-group__two-col">
           <fieldset>
@@ -148,10 +203,9 @@ export default class ProductForm {
         </div>
         <div class="form-group form-group__part-half">
           <label class="form-label">Статус</label>
-          ${new SelectInput('status', [
-            { id: "1", title: "Активен" }, 
-            { id: "0", title: "Неактивен" }
-          ]).template}
+
+          <span data-mount="StatusSelect"></span>
+
         </div>
         <div class="form-buttons">
           <button 
@@ -164,95 +218,6 @@ export default class ProductForm {
           </button>
         </div>
       </form>
-    `
-  }
-}
-
-class SelectInput {
-  options = []
-  name = ''
-
-  get template() {
-    return this.buildTemplate()
-  }
-
-  constructor(name = '', options = []) {
-    this.options = options
-    this.name = name
-  }
-
-  buildTemplate() {
-    return /*html*/`
-      <select
-        data-memo="form-${this.name}"
-        class="form-control" 
-        name="${this.name}">
-        ${this.options.map(({ id, title } = {}) => /*html*/`
-          <option value="${id}">${title}</option>
-        `).join('')}
-      </select>  
-    `
-  }
-}
-
-class FileInput {
-
-  constructor() {
-    this.render()
-  }
-
-  get template() {
-    return this.buildTemplate()
-  }
-
-  render() {
-
-  }
-
-  buildTemplate() {
-    return /*html*/`
-      <div class="form-group form-group__wide" data-element="sortable-list-container">
-        <label class="form-label">Фото</label>
-
-        <div data-element="imageListContainer">
-          <ul class="sortable-list">
-            <li class="products-edit__imagelist-item sortable-list__item" style="">
-              <input 
-                type="hidden" 
-                name="url" 
-                value="https://i.imgur.com/MWorX2R.jpg"
-              >
-              <input 
-                type="hidden" 
-                name="source" 
-                value="75462242_3746019958756848_838491213769211904_n.jpg"
-              >
-              <span>
-                <img src="icon-grab.svg" data-grab-handle="" alt="grab">
-                <img 
-                  class="sortable-table__cell-img" 
-                  alt="Image" 
-                  src="https://i.imgur.com/MWorX2R.jpg"
-                >
-                <span>75462242_3746019958756848_838491213769211904_n.jpg</span>
-              </span>
-
-              <button type="button">
-                <img src="icon-trash.svg" data-delete-handle="" alt="delete">
-              </button>
-            </li>
-          </ul>
-        </div>
-
-        <button 
-          type="button" 
-          name="uploadImage" 
-          class="button-primary-outline"
-        >
-          <input type="file">
-          <span>Загрузить</span>
-        </button>
-      </div>
     `
   }
 }
