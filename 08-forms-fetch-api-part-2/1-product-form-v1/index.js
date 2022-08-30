@@ -12,7 +12,7 @@ export default class ProductForm {
   #baseUrl = new URL(`${BACKEND_URL}`)
   #memo = new MemoDOM()
 
-  #ImageInput = new ImageInput()
+  #ImageInput = null
 
   onSubmitForm = (event) => {
     event.preventDefault()
@@ -43,13 +43,18 @@ export default class ProductForm {
     }
   }
 
-  async loadOptions() {
+  loadCategories() {
     const categoriesUrl = new URL('categories', this.#baseUrl)
 
     categoriesUrl.searchParams.set('_sort', 'weight')
     categoriesUrl.searchParams.set('_refs', 'subcategory')
 
-    this.#categories = await fetchJson(categoriesUrl)
+    return fetchJson(categoriesUrl)
+  }
+
+  loadProductData () {
+    if (!this.productId) return null
+    return fetchJson(`${this.#baseUrl}products?id=${this.productId}`);
   }
 
   getFormData() {
@@ -69,13 +74,21 @@ export default class ProductForm {
 
     formPayload.images = this.#ImageInput.images
 
+    this.productId && (formPayload.id = this.productId)
+
     return formPayload
   }
 
   async render() {
-    await this.loadOptions()
+    const [categories, formData] =  await Promise.all(
+      [this.loadCategories(), this.loadProductData()]
+    )
 
-    this.#elementDOM = createDomElement(this.buildTemplate()) 
+    const productData = formData?.[0]
+
+    this.#elementDOM = createDomElement(this.buildTemplate(productData)) 
+
+    this.#ImageInput = new ImageInput(productData?.images)
 
     const StatusSelect = new SelectInput({
       name: 'status',
@@ -87,7 +100,7 @@ export default class ProductForm {
 
     const CategorySelect = new SelectInput({
       name: 'subcategory',
-      options: this.#categories
+      options: categories
     })
 
     this.renderTree(this.#elementDOM, { 
@@ -125,7 +138,11 @@ export default class ProductForm {
     this.#elementDOM.addEventListener('submit', this.onSubmitForm)
   }
 
-  buildTemplate() {
+  buildTemplate(productData) {
+    const { title, description, price, discount, quantity } = productData || {}
+
+    console.log('description: ', description)
+
     return /*html*/`
       <form 
         data-memo="form"
@@ -135,6 +152,7 @@ export default class ProductForm {
             <label class="form-label">Название товара</label>
             <input 
               data-memo="form-title"
+              value="${title || ''}"
               required="" 
               type="text" 
               name="title" 
@@ -152,7 +170,7 @@ export default class ProductForm {
             name="description" 
             data-element="productDescription" 
             placeholder="Описание товара"
-          ></textarea>
+          >${description || ''}</textarea>
         </div>
         <div class="form-group form-group__wide" data-element="sortable-list-container">
 
@@ -172,6 +190,7 @@ export default class ProductForm {
             <input 
               data-memo="form-price"
               required="" 
+              value="${price || ''}"
               type="number"
               name="price" 
               class="form-control" 
@@ -185,6 +204,7 @@ export default class ProductForm {
               required=""
               type="number" 
               name="discount" 
+              value="${discount || ''}"
               class="form-control" 
               placeholder="0"
             >
@@ -197,6 +217,7 @@ export default class ProductForm {
             required="" 
             type="number" 
             class="form-control" 
+            value="${quantity || ''}"
             name="quantity" 
             placeholder="1"
           >

@@ -62,16 +62,12 @@ export class ImageInput {
     fileInput.oninput = this.uploadFile
   }
 
-  constructor() {
-    this.render()
+  constructor(files = null) {
+    this.#files = files ? files : []
   }
 
   get images() {
     return this.#files.map((image) => ({ ...image }))
-  }
-
-  get template() {
-    return this.buildTemplate()
   }
   
   get element() {
@@ -79,7 +75,8 @@ export class ImageInput {
   }
 
   render() {
-    this.#elementDOM = createDomElement(this.buildTemplate)
+
+    this.#elementDOM = createDomElement(this.buildTemplate())
     this.#memo.memoizeDocument(this.#elementDOM)
     this.initEventListeners()
   }
@@ -107,7 +104,9 @@ export class ImageInput {
         <label class="form-label">Фото</label>
 
         <ul class="sortable-list" data-memo="imageListContainer">
-          
+          ${this.#files.map(({ url, source } = {}) => 
+            this.buildImageTamplate(url, source)).join('')
+          }
         </ul>
 
         <button 
@@ -122,10 +121,8 @@ export class ImageInput {
     `
   }
 
-  getImageItem (url, name) {
-    const imageItemContainer = document.createElement('div');
-
-    imageItemContainer.innerHTML = /*html*/`
+  buildImageTamplate(url, name) {
+    return /*html*/`
       <li 
         class="products-edit__imagelist-item sortable-list__item"
       >
@@ -137,7 +134,16 @@ export class ImageInput {
         <button type="button">
           <img src="./icon-trash.svg" alt="delete" data-delete-handle>
         </button>
-      </li>`;
+      </li>
+    `
+  }
+
+  getImageItem (url, name) {
+    console.log('url: ', url)
+
+    const imageItemContainer = document.createElement('div');
+
+    imageItemContainer.innerHTML = this.buildImageTamplate(url, name);
 
     return imageItemContainer.firstElementChild;
   }
