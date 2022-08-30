@@ -8,7 +8,6 @@ const BACKEND_URL = 'https://course-js.javascript.ru/api/rest/';
 
 export default class ProductForm {
   #elementDOM = null
-  #categories = []
   #baseUrl = new URL(`${BACKEND_URL}`)
   #memo = new MemoDOM()
 
