@@ -7,12 +7,14 @@ export default class SortableList {
   droppableLi = null
 
   placeholderLi = null
+
   shiftPoint = { x: 0, y: 0 }  
 
-  onPointerMove = ({ clientX, clientY }) => {
-    this.moveDragElement({ clientX, clientY })
+  onPointerMove = (event) => {
+    this.moveDragElement(event)
+    this.scrollIfCloseToWindowEdge(event)
 
-    const droppableLi = this.findDroppableArea({ clientX, clientY })
+    const droppableLi = this.findDroppableArea(event)
     if (!droppableLi) return
     this.droppableLi = droppableLi
 
@@ -29,15 +31,25 @@ export default class SortableList {
   }
 
   onMouseDown = (event) => {
+    event.preventDefault()
+
     const li = event.target.closest('[data-draggable]')
+    const isDragAction = !!event.target.closest('[data-grab-handle]')
+    const isRemoveAction = !!event.target.closest('[data-delete-handle]')
+
     if (!li) return
-    this.draggingLi = li
+    isDragAction && this.startDragEvent(li, event)
+    isRemoveAction && li.remove()
+  }
+
+  startDragEvent(liItem, event) {
+    this.draggingLi = liItem
 
     this.mountPlaceholder()
     this.makeLiDraggable()
 
-    this.initDocumentListeners()
     this.initLiShiftPoint(event)
+    this.initDocumentListeners()
   }
 
   mountPlaceholder() {
@@ -66,6 +78,7 @@ export default class SortableList {
 
   initLiShiftPoint({ clientX, clientY }) {
     const { x, y } = this.draggingLi.getBoundingClientRect()
+
     this.shiftPoint = { 
       x: clientX - x,
       y: clientY - y
@@ -105,6 +118,17 @@ export default class SortableList {
     this.#elemenetDOM.removeChild(swapMarker)
   }
 
+  scrollIfCloseToWindowEdge({ clientY }) {
+    const scrollingValue = 10
+    const treshold = 20
+
+    if (clientY < treshold)
+      window.scrollBy(0, -scrollingValue)
+    
+    if (clientY > document.documentElement.clientHeight - treshold)
+      window.scrollBy(0, scrollingValue)
+  }
+
   get element() {
     return this.#elemenetDOM
   }
@@ -120,12 +144,9 @@ export default class SortableList {
 
     ul.classList.add('sortable-list')
 
-    let i = 1
     for (const item of this.items) {
       item.classList.add('sortable-list__item')
       item.setAttribute('data-draggable', '')
-      item.setAttribute('data-order', `${i}`)
-      i += 1
     }
 
     ul.append(...this.items)
