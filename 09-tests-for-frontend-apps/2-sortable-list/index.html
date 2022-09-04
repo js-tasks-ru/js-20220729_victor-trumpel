@@ -3,15 +3,13 @@
 <link rel="stylesheet" href="style.css">
 <body>
 
-<div>
-  <div id="holder">
-  </div>  
-</div>
+<div id="holder">
+</div>  
 
 <script type="module">
   import SortableList from './index.js';
 
-  const data = Array.from({ length: 15 }, (_, i) => i);
+  const data = Array.from({ length: 20 }, (_, i) => i);
 
   const sortableList = new SortableList({
     items: data.map(item => {

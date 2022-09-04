@@ -38,8 +38,8 @@ export default class SortableList {
     const isRemoveAction = !!event.target.closest('[data-delete-handle]')
 
     if (!li) return
-    isDragAction && this.startDragEvent(li, event)
-    isRemoveAction && li.remove()
+    if (isDragAction) this.startDragEvent(li, event)
+    if (isRemoveAction) li.remove()
   }
 
   startDragEvent(liItem, event) {
