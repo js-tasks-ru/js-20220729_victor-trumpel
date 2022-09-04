@@ -121,6 +121,9 @@ export default class SortableTable {
   }
 
   update(data) {
+    console.log('data: ', data)
+    console.log('this.data: ', this.data)
+
     const rows = document.createElement('div');
 
     this.data = [...this.data, ...data];

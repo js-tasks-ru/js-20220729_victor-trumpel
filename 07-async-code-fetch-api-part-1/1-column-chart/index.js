@@ -1,18 +1,16 @@
 import fetchJson from './utils/fetch-json.js'
 import createDomElement from './utils/createDomElement.js'
 import MemoDOM from './MemoDom.js'
-import ColumnChartTemplate from './ColumnChartTemplate.js'
 
 const BACKEND_URL = 'https://course-js.javascript.ru'
 
-export default class ColumnChart extends ColumnChartTemplate {
+export default class ColumnChart {
   #chartHeight = 50
   #elementDOM = null
   #memo = new MemoDOM()
   #apiUrl = ''
 
   constructor({ url = '', range, ...props } = {}) {  
-    super()
     this.#apiUrl = `${BACKEND_URL}/${url}`
     this.render(props)
     this.update(range?.from, range?.to)
@@ -36,6 +34,7 @@ export default class ColumnChart extends ColumnChartTemplate {
 
   destroy() {
     this.remove()
+    this.#memo.clear()
     this.#elementDOM = null
   }
 
@@ -72,5 +71,46 @@ export default class ColumnChart extends ColumnChartTemplate {
 
     this.#elementDOM = createDomElement(this.buildTemplate(props))
     this.#memo.memoizeDocument(this.#elementDOM)
+  }
+
+  buildTemplate({ data, label, formatHeading, value, link } = {}) {
+    return /*html*/`
+      <div
+        class="column-chart" 
+        style="--chart-height: ${this.chartHeight}"
+      >
+        <div class="column-chart__title">
+          ${label}
+          ${this.buildLinkTemplate(link)}
+        </div>
+        <div class="column-chart__container">
+          <div data-memo="header" class="column-chart__header">
+            ${formatHeading(value)}
+          </div>
+          <div data-memo="body" class="column-chart__chart">
+            ${this.buildColumnTemplate(data)}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  buildLinkTemplate(link) {
+    return link
+      ? /*html*/`<a class="column-chart__link" href="${link}">View all</a>`
+      : ""
+  }
+
+  buildColumnTemplate(columnsData = []) {
+    const maxValue = Math.max(...columnsData);
+    const scale = this.chartHeight / maxValue;
+
+    return columnsData.map((columnValue) => {
+      const percent = ((columnValue / maxValue) * 100).toFixed(0);
+      const value = String(Math.floor(columnValue * scale))
+      return /*html*/`
+        <div style="--value: ${value}" data-tooltip="${percent}%"></div>
+      `
+    }).join('')
   }
 }

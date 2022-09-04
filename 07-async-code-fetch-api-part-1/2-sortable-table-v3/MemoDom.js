@@ -9,9 +9,9 @@ export default class MemoDOM {
     this.#cache = {}
   }
 
-  memoizeDocument(document) {
-    if (!document) return
-    const elementNeedCache = document.querySelectorAll('[data-memo]')
+  memoizeDocument(elementDOM) {
+    if (!elementDOM) return
+    const elementNeedCache = elementDOM.querySelectorAll('[data-memo]')
 
     for (const element of elementNeedCache) {
       const key = element.dataset.memo

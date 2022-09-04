@@ -30,6 +30,13 @@ body {
   position: relative;
   padding: 0;
   margin: 12px 0;
+
+  -moz-user-select: none;
+  -o-user-select:none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+    user-select: none;
 }
 
 .sortable-list__item {
