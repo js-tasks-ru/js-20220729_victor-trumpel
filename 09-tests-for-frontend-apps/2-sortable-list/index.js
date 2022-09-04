@@ -44,11 +44,12 @@ export default class SortableList {
 
   startDragEvent(liItem, event) {
     this.draggingLi = liItem
+    this.initLiShiftPoint(liItem, event)    
 
     this.mountPlaceholder()
     this.makeLiDraggable()
-
-    this.initLiShiftPoint(event)
+    
+    this.moveDragElement(event)
     this.initDocumentListeners()
   }
 
@@ -76,9 +77,8 @@ export default class SortableList {
     this.draggingLi.onmouseup = null
   }
 
-  initLiShiftPoint({ clientX, clientY }) {
-    const { x, y } = this.draggingLi.getBoundingClientRect()
-
+  initLiShiftPoint(liItem, { clientX, clientY }) {
+    const { x, y } = liItem.getBoundingClientRect()
     this.shiftPoint = { 
       x: clientX - x,
       y: clientY - y
@@ -169,5 +169,4 @@ export default class SortableList {
   initEventListener() {
     this.#elemenetDOM.addEventListener('mousedown', this.onMouseDown)
   }
-
 }
