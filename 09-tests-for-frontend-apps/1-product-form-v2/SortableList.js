@@ -87,12 +87,12 @@ export default class SortableList {
 
   initDocumentListeners() {
     document.addEventListener('pointermove', this.onPointerMove)
-    document.addEventListener('mouseleave', this.onMouseUp)
+    document.addEventListener('pointerleave', this.onMouseUp)
   }
 
   removeDocumentListeners() {
     document.removeEventListener('pointermove', this.onPointerMove)
-    document.removeEventListener('mouseleave', this.onMouseUp)
+    document.removeEventListener('pointerleave', this.onMouseUp)
   }
 
   moveDragElement({ clientX, clientY }) {
@@ -135,8 +135,10 @@ export default class SortableList {
 
   constructor({ items }) {
     this.items = items
-
-    this.render()
+  }
+  
+  get element() {
+    return this.#elemenetDOM
   }
 
   render() {
